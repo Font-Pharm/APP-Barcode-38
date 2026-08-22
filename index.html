@@ -5,97 +5,81 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <meta name="theme-color" content="#14211C">
 <title>ตรวจรับ Chart</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ตรวจรับ Chart">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" href="icons/icon-192.png">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
 :root{
   --ink:#14211C; --ink-2:#1E2F28; --ink-3:#2C4038;
-  --ledger:#A9C79B; --ledger-pale:#E4EDDC;
-  --paper:#F5F7F0; --paper-2:#FFFFFF;
+  --ledger:#A9C79B; --paper:#F5F7F0;
   --stamp:#B4322A; --ok:#1F7A4C; --warn:#B8791C; --muted:#6E7F76;
-  --line:rgba(20,33,28,.14);
-  --r:10px;
-  --safe-b:env(safe-area-inset-bottom,0px);
+  --r:10px; --safe-b:env(safe-area-inset-bottom,0px);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;margin:0}
-body{
-  background:var(--ink); color:var(--paper);
-  font-family:'Sarabun',system-ui,sans-serif; font-size:16px; line-height:1.45;
-  overscroll-behavior:none;
-}
+body{background:var(--ink);color:var(--paper);font-family:'Sarabun',system-ui,sans-serif;
+  font-size:16px;line-height:1.45;overscroll-behavior:none}
 .mono{font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 :focus-visible{outline:2px solid var(--ledger);outline-offset:2px}
 
-/* ── shell ───────────────────────────── */
 #app{display:flex;flex-direction:column;height:100dvh;max-width:560px;margin:0 auto}
-
-header{
-  display:flex;align-items:center;gap:10px;padding:10px 14px;
-  border-bottom:1px solid rgba(169,199,155,.18);flex:0 0 auto;
-}
-header .mark{
-  width:26px;height:26px;flex:0 0 auto;border-radius:5px;background:var(--ledger);
-  display:grid;place-items:center;color:var(--ink);font-weight:700;font-size:13px;
-}
-header h1{margin:0;font-size:15px;font-weight:600;letter-spacing:.01em;flex:1;min-width:0;
+header{display:flex;align-items:center;gap:10px;padding:10px 14px;
+  border-bottom:1px solid rgba(169,199,155,.18);flex:0 0 auto}
+header .mark{width:26px;height:26px;border-radius:5px;background:var(--ledger);
+  display:grid;place-items:center;color:var(--ink);font-weight:700;font-size:13px;flex:0 0 auto}
+header h1{margin:0;font-size:15px;font-weight:600;flex:1;min-width:0;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.chip{
-  font-size:12px;font-weight:600;padding:5px 9px;border-radius:99px;
-  border:1px solid rgba(169,199,155,.35);color:var(--ledger);white-space:nowrap;
-}
-.chip[aria-pressed="true"]{background:var(--ledger);color:var(--ink);border-color:var(--ledger)}
+.chip{font-size:12px;font-weight:600;padding:5px 9px;border-radius:99px;
+  border:1px solid rgba(169,199,155,.35);color:var(--ledger);white-space:nowrap}
 
 main{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .view{display:none;padding:0 0 16px}
 .view.on{display:block}
 
-/* ── camera ──────────────────────────── */
-.stage{position:relative;background:#000;aspect-ratio:4/3;overflow:hidden}
-.stage video{width:100%;height:100%;object-fit:cover;display:block;transform-origin:center}
+/* ── กล้อง ─────────────────────────────── */
+.stage{position:relative;background:#000;aspect-ratio:3/4;overflow:hidden}
+.stage video{width:100%;height:100%;object-fit:cover;display:block}
 .stage.off video{opacity:0}
-.stage-msg{
-  position:absolute;inset:0;display:grid;place-items:center;text-align:center;
-  padding:24px;color:var(--muted);font-size:14px;
-}
+.stage-msg{position:absolute;inset:0;display:grid;place-items:center;text-align:center;
+  padding:24px;color:var(--muted);font-size:14px}
 .stage:not(.off) .stage-msg{display:none}
 
-/* กรอบสแกน: แถบแนวนอน + เส้นเล็งกึ่งกลาง (Code 39 ทนการเอียงได้น้อย) */
-.reticle{position:absolute;left:6%;right:6%;top:50%;height:23%;transform:translateY(-50%);pointer-events:none}
-.reticle::before{
-  content:"";position:absolute;inset:0;border:2px solid rgba(255,255,255,.85);border-radius:4px;
-  box-shadow:0 0 0 100vmax rgba(0,0,0,.42);
-}
-.reticle .aim{
-  position:absolute;left:8px;right:8px;top:50%;height:2px;transform:translateY(-50%);
-  background:var(--stamp);opacity:.9;
-}
-.reticle .hint{
-  position:absolute;left:0;right:0;bottom:-26px;text-align:center;
-  font-size:11.5px;color:rgba(255,255,255,.8);
-}
+.reticle{position:absolute;pointer-events:none;
+  border:2px solid rgba(255,255,255,.9);border-radius:4px;
+  box-shadow:0 0 0 100vmax rgba(0,0,0,.40);transition:border-color .15s}
+.reticle .aim{position:absolute;left:6px;right:6px;top:50%;height:2px;
+  transform:translateY(-50%);background:var(--stamp);opacity:.9}
+.reticle.hit{border-color:#4FD98C}
+.reticle.full{box-shadow:none;border-color:rgba(255,255,255,.35)}
+.reticle.full .aim{display:none}
 
+.hud{position:absolute;left:0;right:0;bottom:8px;text-align:center;
+  font-size:11.5px;color:rgba(255,255,255,.85);pointer-events:none;
+  text-shadow:0 1px 3px rgba(0,0,0,.9)}
 .cam-tools{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:8px}
-.tool{
-  width:40px;height:40px;border-radius:9px;background:rgba(0,0,0,.55);
-  border:1px solid rgba(255,255,255,.22);display:grid;place-items:center;font-size:17px;
-}
-.tool[aria-pressed="true"]{background:var(--ledger);color:var(--ink);border-color:var(--ledger)}
-.zoomwrap{
-  position:absolute;left:10px;right:60px;bottom:10px;display:flex;align-items:center;gap:9px;
-  background:rgba(0,0,0,.5);border-radius:9px;padding:7px 11px;
-}
+.tool{width:42px;height:42px;border-radius:9px;background:rgba(0,0,0,.55);
+  border:1px solid rgba(255,255,255,.22);display:grid;place-items:center;font-size:17px}
+.tool[aria-pressed="true"]{background:var(--ledger);color:var(--ink)}
+.tool.ping{animation:ping .5s ease-out}
+@keyframes ping{0%{background:var(--ledger);color:var(--ink)}100%{background:rgba(0,0,0,.55)}}
+.zoomwrap{position:absolute;left:10px;right:62px;bottom:30px;display:flex;align-items:center;gap:9px;
+  background:rgba(0,0,0,.5);border-radius:9px;padding:7px 11px}
 .zoomwrap span{font-size:12px;color:#fff;opacity:.85}
-.zoomwrap input{flex:1;accent-color:var(--ledger)}
+.zoomwrap input{flex:1;accent-color:var(--ledger);min-width:0}
 
-/* ── status banner (signature) ───────── */
-.status{
-  position:relative;overflow:hidden;padding:13px 16px;min-height:56px;
-  display:flex;align-items:center;gap:12px;background:var(--ink-2);
-  border-bottom:1px solid rgba(169,199,155,.15);
-}
+/* ── สถานะ ─────────────────────────────── */
+.status{position:relative;padding:13px 16px;min-height:56px;display:flex;align-items:center;gap:12px;
+  background:var(--ink-2);border-bottom:1px solid rgba(169,199,155,.15)}
 .status[data-s="ok"]{background:var(--ok)}
 .status[data-s="already"]{background:var(--warn)}
 .status[data-s="added"]{background:#7A4EA8}
@@ -105,65 +89,50 @@ main{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .status .txt b{display:block;font-size:15px;font-weight:700}
 .status .txt small{display:block;font-size:12.5px;opacity:.9}
 
-/* ── record card + stamp ─────────────── */
-.card{
-  background:var(--paper);color:var(--ink);border-radius:var(--r);
-  margin:14px;padding:14px;position:relative;overflow:hidden;
-}
+.card{background:var(--paper);color:var(--ink);border-radius:var(--r);
+  margin:14px;padding:14px;position:relative;overflow:hidden}
 .card .an{font-size:26px;font-weight:600;letter-spacing:.04em}
-.card .who{font-size:15px;font-weight:600;margin-top:2px}
 .card dl{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;margin:10px 0 0;font-size:13.5px}
 .card dt{color:var(--muted)}
 .card dd{margin:0}
-.card .src{
-  margin-top:11px;padding-top:9px;border-top:1px dashed var(--line);
-  font-size:12px;color:var(--muted);word-break:break-word;
-}
-.stamp{
-  position:absolute;right:12px;top:16px;
-  border:2.5px solid var(--stamp);color:var(--stamp);border-radius:6px;
-  padding:5px 10px;font-weight:700;font-size:13px;letter-spacing:.05em;
-  transform:rotate(-7deg);opacity:.88;text-align:center;line-height:1.15;
-}
+.card .src{margin-top:11px;padding-top:9px;border-top:1px dashed rgba(20,33,28,.14);
+  font-size:12px;color:var(--muted);word-break:break-word}
+.stamp{position:absolute;right:12px;top:16px;border:2.5px solid var(--stamp);color:var(--stamp);
+  border-radius:6px;padding:5px 10px;font-weight:700;font-size:13px;letter-spacing:.05em;
+  transform:rotate(-7deg);opacity:.88;text-align:center;line-height:1.15}
 .stamp small{display:block;font-size:10px;letter-spacing:.12em;opacity:.85}
 .stamp.hit{animation:thud .42s cubic-bezier(.2,1.5,.4,1) both}
-@keyframes thud{
-  0%{transform:rotate(-16deg) scale(2.6);opacity:0}
+@keyframes thud{0%{transform:rotate(-16deg) scale(2.6);opacity:0}
   55%{transform:rotate(-5deg) scale(.94);opacity:1}
-  100%{transform:rotate(-7deg) scale(1);opacity:.88}
-}
-@media (prefers-reduced-motion:reduce){.stamp.hit{animation:none}}
+  100%{transform:rotate(-7deg) scale(1);opacity:.88}}
+@media (prefers-reduced-motion:reduce){.stamp.hit,.tool.ping{animation:none}}
 
-/* ── generic bits ────────────────────── */
+/* ── ทั่วไป ────────────────────────────── */
 .row{display:flex;gap:9px;padding:0 14px;margin-bottom:11px}
-.btn{
-  flex:1;padding:13px;border-radius:var(--r);font-weight:600;font-size:15px;text-align:center;
-  background:var(--ink-3);border:1px solid rgba(169,199,155,.22);
-}
+.btn{flex:1;padding:13px;border-radius:var(--r);font-weight:600;font-size:15px;text-align:center;
+  background:var(--ink-3);border:1px solid rgba(169,199,155,.22)}
 .btn.primary{background:var(--ledger);color:var(--ink);border-color:var(--ledger)}
 .btn.ghost{background:none}
 .btn[disabled]{opacity:.4}
-.seg{display:flex;padding:0 14px;gap:0;margin:12px 0}
-.seg button{
-  flex:1;padding:10px;font-size:14px;font-weight:600;border:1px solid rgba(169,199,155,.25);
-  background:none;color:var(--muted);
-}
+.seg{display:flex;padding:0 14px;margin:12px 0}
+.seg button{flex:1;padding:10px 4px;font-size:13.5px;font-weight:600;
+  border:1px solid rgba(169,199,155,.25);background:none;color:var(--muted)}
+.seg button+button{border-left:0}
 .seg button:first-child{border-radius:var(--r) 0 0 var(--r)}
-.seg button:last-child{border-radius:0 var(--r) var(--r) 0;border-left:0}
+.seg button:last-child{border-radius:0 var(--r) var(--r) 0}
 .seg button[aria-pressed="true"]{background:var(--ledger);color:var(--ink);border-color:var(--ledger)}
+.seg.flat{padding:0}
 
 .field{padding:0 14px;margin-bottom:12px}
 .field label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:5px}
-.field select,.field input{
-  width:100%;padding:12px;border-radius:var(--r);font:inherit;
-  background:var(--ink-2);color:var(--paper);border:1px solid rgba(169,199,155,.25);
-}
-.field input.mono{font-family:'IBM Plex Mono',monospace;font-size:19px;letter-spacing:.06em}
+.field select,.field input,.field textarea{width:100%;padding:12px;border-radius:var(--r);font:inherit;
+  background:var(--ink-2);color:var(--paper);border:1px solid rgba(169,199,155,.25)}
+.field input.mono,.field textarea{font-family:'IBM Plex Mono',monospace;font-size:13px;word-break:break-all}
+.field input.big{font-size:19px;letter-spacing:.06em}
 
 .list{padding:0 14px}
-.item{
-  display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid rgba(169,199,155,.13);
-}
+.item{display:flex;align-items:center;gap:11px;padding:11px 0;
+  border-bottom:1px solid rgba(169,199,155,.13)}
 .item .dot{width:9px;height:9px;border-radius:99px;flex:0 0 auto;background:var(--muted)}
 .item[data-s="ok"] .dot{background:#4FD98C}
 .item[data-s="already"] .dot{background:#EFB443}
@@ -172,21 +141,22 @@ main{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .item .an{flex:1;font-size:17px;letter-spacing:.03em}
 .item .meta{font-size:11.5px;color:var(--muted);text-align:right;line-height:1.3}
 .empty{padding:40px 20px;text-align:center;color:var(--muted);font-size:14px}
-.note{padding:0 14px;font-size:12.5px;color:var(--muted);margin-bottom:14px}
+.note{padding:0 14px;font-size:12.5px;color:var(--muted);margin:0 0 14px}
 .count{font-size:12px;color:var(--muted);padding:0 14px;margin:10px 0}
+h2.sec{font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--ledger);padding:0 14px;margin:22px 0 10px}
+.caps{padding:0 14px;font-size:12.5px}
+.caps div{display:flex;justify-content:space-between;gap:12px;padding:6px 0;
+  border-bottom:1px solid rgba(169,199,155,.13)}
+.caps span:last-child{color:var(--muted);text-align:right}
 
-/* ── tab bar ─────────────────────────── */
-nav{
-  flex:0 0 auto;display:flex;border-top:1px solid rgba(169,199,155,.18);
-  padding-bottom:var(--safe-b);background:var(--ink);
-}
+nav{flex:0 0 auto;display:flex;border-top:1px solid rgba(169,199,155,.18);
+  padding-bottom:var(--safe-b);background:var(--ink)}
 nav button{flex:1;padding:11px 4px 9px;text-align:center;color:var(--muted);font-size:11.5px;font-weight:600}
 nav button .ic{display:block;font-size:19px;margin-bottom:1px}
 nav button[aria-pressed="true"]{color:var(--ledger)}
-nav .badge{
-  display:inline-block;min-width:17px;padding:0 5px;border-radius:99px;background:var(--stamp);
-  color:#fff;font-size:10.5px;line-height:17px;margin-left:4px;
-}
+nav .badge{display:inline-block;min-width:17px;padding:0 5px;border-radius:99px;
+  background:var(--stamp);color:#fff;font-size:10.5px;line-height:17px;margin-left:4px}
 </style>
 </head>
 <body>
@@ -202,23 +172,21 @@ nav .badge{
     <section class="view on" id="v-scan">
       <div class="stage off" id="stage">
         <video id="video" playsinline muted autoplay></video>
-        <div class="stage-msg" id="stageMsg" data-i18n="camIdle">กดเริ่มสแกนเพื่อเปิดกล้อง</div>
-        <div class="reticle" id="reticle" hidden>
-          <div class="aim"></div>
-          <div class="hint" data-i18n="aimHint">วางบาร์โค้ดให้ทับเส้นแดง ถือให้ตรง</div>
-        </div>
+        <div class="stage-msg" data-i18n="camIdle">กดเริ่มสแกนเพื่อเปิดกล้อง</div>
+        <div class="reticle" id="reticle" hidden><div class="aim"></div></div>
         <div class="cam-tools" id="camTools" hidden>
           <button class="tool" id="torchBtn" aria-pressed="false" title="ไฟฉาย">🔦</button>
-          <button class="tool" id="focusBtn" title="โฟกัส">◎</button>
+          <button class="tool" id="focusBtn" title="โฟกัสใหม่">◎</button>
         </div>
         <div class="zoomwrap" id="zoomWrap" hidden>
           <span>−</span><input type="range" id="zoom" min="1" max="4" step="0.1" value="1"><span>+</span>
         </div>
+        <div class="hud" id="hud" hidden></div>
       </div>
 
       <div class="status" id="status" data-s="idle">
         <div class="icon" id="stIcon">◻</div>
-        <div class="txt"><b id="stTitle" data-i18n="ready">พร้อมสแกน</b><small id="stSub" data-i18n="readySub">เลือกชื่อผู้ตรวจรับก่อนเริ่ม</small></div>
+        <div class="txt"><b id="stTitle">พร้อมสแกน</b><small id="stSub"></small></div>
       </div>
 
       <div id="cardSlot"></div>
@@ -231,20 +199,30 @@ nav .badge{
       <div id="manualBox" hidden>
         <div class="field">
           <label data-i18n="manualLabel">เลข AN (9 หลัก)</label>
-          <input class="mono" id="manualIn" inputmode="numeric" autocomplete="off" placeholder="690012053">
+          <input class="mono big" id="manualIn" inputmode="numeric" autocomplete="off" placeholder="690012053">
         </div>
         <div class="row"><button class="btn primary" id="manualGo" data-i18n="add">เพิ่มรายการ</button></div>
       </div>
 
+      <h2 class="sec" data-i18n="areaLabel">ขอบเขตการสแกน</h2>
+      <div class="seg" role="group" id="areaSeg">
+        <button data-area="tight" data-i18n="areaTight">แคบ</button>
+        <button data-area="normal" aria-pressed="true" data-i18n="areaNormal">ปกติ</button>
+        <button data-area="wide" data-i18n="areaWide">กว้าง</button>
+        <button data-area="full" data-i18n="areaFull">ทั้งภาพ</button>
+      </div>
+      <p class="note" id="areaNote"></p>
+
+      <h2 class="sec" data-i18n="modeLabel">โหมดบันทึก</h2>
       <div class="seg" role="group">
         <button id="modeSingle" aria-pressed="true" data-i18n="modeSingle">ทีละรายการ</button>
-        <button id="modeBatch" aria-pressed="false" data-i18n="modeBatch">สแกนหลายรายการ</button>
+        <button id="modeBatch" data-i18n="modeBatch">สแกนหลายรายการ</button>
       </div>
-      <p class="note" id="modeNote" data-i18n="modeNoteSingle">สแกนแล้วบันทึกลงชีตทันที</p>
+      <p class="note" id="modeNote"></p>
 
       <div class="field">
         <label data-i18n="staffLabel">ผู้ตรวจรับ</label>
-        <select id="staff"><option value="" data-i18n="staffPick">— เลือกชื่อ —</option></select>
+        <select id="staff"><option value="">— เลือกชื่อ —</option></select>
       </div>
 
       <div class="row" id="commitRow" hidden>
@@ -260,149 +238,190 @@ nav .badge{
         <button class="btn" id="retryBtn" data-i18n="retry">ส่งรายการค้างอีกครั้ง</button>
         <button class="btn ghost" id="clearBtn" data-i18n="clear">ล้างประวัติ</button>
       </div>
-      <p class="note" data-i18n="listNote">ประวัติจะเริ่มใหม่อัตโนมัติเมื่อขึ้นวันใหม่ รายการที่บันทึกลงชีตแล้วจะยังอยู่ในชีตเสมอ</p>
+      <p class="note" data-i18n="listNote">ประวัติเริ่มใหม่อัตโนมัติเมื่อขึ้นวันใหม่</p>
     </section>
 
     <!-- ══ ตั้งค่า ══ -->
     <section class="view" id="v-set">
-      <div class="field" style="margin-top:14px">
-        <label data-i18n="beepLabel">การแจ้งเตือน</label>
-        <div class="seg" style="padding:0">
+      <h2 class="sec" data-i18n="connLabel">การเชื่อมต่อ</h2>
+      <div class="field">
+        <label data-i18n="urlLabel">ที่อยู่ Apps Script (/exec)</label>
+        <input id="apiUrl" class="mono" placeholder="https://script.google.com/…/exec" autocomplete="off">
+      </div>
+      <div class="field">
+        <label data-i18n="tokenLabel">รหัสเชื่อมต่อ</label>
+        <input id="apiToken" class="mono" autocomplete="off">
+      </div>
+      <div class="row"><button class="btn primary" id="saveCfg" data-i18n="testSave">ทดสอบและบันทึก</button></div>
+      <p class="note" id="cfgMsg"></p>
+
+      <h2 class="sec" data-i18n="backupLabel">ย้ายค่าตั้งค่าไปเครื่องอื่น</h2>
+      <div class="field">
+        <label data-i18n="codeLabel">รหัสตั้งค่า</label>
+        <textarea id="cfgCode" rows="3" readonly></textarea>
+      </div>
+      <div class="row">
+        <button class="btn" id="copyCfg" data-i18n="copy">คัดลอก</button>
+        <button class="btn" id="pasteCfg" data-i18n="paste">วางรหัสตั้งค่า</button>
+      </div>
+      <p class="note" data-i18n="codeNote">รหัสนี้มีทั้งลิงก์และรหัสเชื่อมต่อรวมกัน ถือเป็นความลับ</p>
+
+      <h2 class="sec" data-i18n="alertLabel">การแจ้งเตือน</h2>
+      <div class="field">
+        <div class="seg flat">
           <button id="sndBtn" aria-pressed="true" data-i18n="sound">เสียง</button>
           <button id="vibBtn" aria-pressed="true" data-i18n="vibrate">สั่น</button>
         </div>
       </div>
-      <p class="note" data-i18n="vibNote">การสั่นใช้ได้เฉพาะ Android — บน iPhone ให้ใช้เสียงแทน</p>
-      <div class="field">
-        <label data-i18n="urlLabel">ที่อยู่ Apps Script (/exec)</label>
-        <input id="apiUrl" placeholder="https://script.google.com/…/exec" autocomplete="off">
+
+      <h2 class="sec" data-i18n="installLabel">ติดตั้งลงหน้าจอโฮม</h2>
+      <div class="row" id="installRow" hidden>
+        <button class="btn primary" id="installBtn" data-i18n="install">ติดตั้งแอป</button>
       </div>
-      <div class="field">
-        <label data-i18n="tokenLabel">รหัสเชื่อมต่อ</label>
-        <input id="apiToken" autocomplete="off">
-      </div>
-      <div class="row"><button class="btn primary" id="saveCfg" data-i18n="testSave">ทดสอบและบันทึก</button></div>
-      <p class="note" id="cfgMsg"></p>
+      <p class="note" id="installNote"></p>
+
+      <h2 class="sec" data-i18n="capsLabel">ความสามารถของกล้องเครื่องนี้</h2>
+      <div class="caps" id="caps"></div>
+      <p class="note" id="ver"></p>
     </section>
   </main>
 
   <nav>
     <button id="tab-scan" aria-pressed="true"><span class="ic">▣</span><span data-i18n="tabScan">สแกน</span></button>
-    <button id="tab-list" aria-pressed="false"><span class="ic">☰</span><span data-i18n="tabList">รายการ</span><span class="badge" id="tabBadge" hidden>0</span></button>
-    <button id="tab-set" aria-pressed="false"><span class="ic">⚙</span><span data-i18n="tabSet">ตั้งค่า</span></button>
+    <button id="tab-list"><span class="ic">☰</span><span data-i18n="tabList">รายการ</span><span class="badge" id="tabBadge" hidden>0</span></button>
+    <button id="tab-set"><span class="ic">⚙</span><span data-i18n="tabSet">ตั้งค่า</span></button>
   </nav>
 </div>
 
-<script src="https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"></script>
+<script src="zxing.min.js"></script>
 <script>
 "use strict";
+const VERSION = "2.0";
+const $ = id => document.getElementById(id);
 
-/* ═══ 1. ภาษา ═══════════════════════════════════════════ */
+/* ═══ 1. ภาษา ══════════════════════════════════════════ */
 const I18N = {
-  th:{appTitle:"ตรวจรับ Chart",ready:"พร้อมสแกน",readySub:"เลือกชื่อผู้ตรวจรับก่อนเริ่ม",
-    camIdle:"กดเริ่มสแกนเพื่อเปิดกล้อง",aimHint:"วางบาร์โค้ดให้ทับเส้นแดง ถือให้ตรง",
-    startCam:"เริ่มสแกน",stopCam:"หยุดสแกน",manual:"พิมพ์เลข AN",manualLabel:"เลข AN (9 หลัก)",add:"เพิ่มรายการ",
-    modeSingle:"ทีละรายการ",modeBatch:"สแกนหลายรายการ",
-    modeNoteSingle:"สแกนแล้วบันทึกลงชีตทันที",modeNoteBatch:"เก็บไว้ก่อน แล้วกดบันทึกทีเดียวเมื่อสแกนครบ",
-    staffLabel:"ผู้ตรวจรับ",staffPick:"— เลือกชื่อ —",commit:"บันทึกลงชีต",
-    retry:"ส่งรายการค้างอีกครั้ง",clear:"ล้างประวัติ",
-    listNote:"ประวัติจะเริ่มใหม่อัตโนมัติเมื่อขึ้นวันใหม่ รายการที่บันทึกลงชีตแล้วจะยังอยู่ในชีตเสมอ",
-    beepLabel:"การแจ้งเตือน",sound:"เสียง",vibrate:"สั่น",
-    vibNote:"การสั่นใช้ได้เฉพาะ Android — บน iPhone ให้ใช้เสียงแทน",
-    urlLabel:"ที่อยู่ Apps Script (/exec)",tokenLabel:"รหัสเชื่อมต่อ",testSave:"ทดสอบและบันทึก",
-    tabScan:"สแกน",tabList:"รายการ",tabSet:"ตั้งค่า",
-    sFound:"พบในรายการ",sFoundSub:"บันทึกวันที่ตรวจรับแล้ว",
-    sQueued:"เก็บไว้แล้ว",sQueuedSub:"รอกดบันทึกลงชีต",
-    sDup:"สแกนซ้ำ",sDupSub:"เลขนี้อยู่ในรายการรอบนี้แล้ว",
-    sAlready:"ตรวจรับไปแล้ว",sAlreadySub:"บันทึกไว้เมื่อ ",
-    sAdded:"ไม่พบในรายการส่ง",sAddedSub:"เพิ่มแถวใหม่ในชีตแล้ว ต้องเติมชื่อ-สกุลเอง",
-    sMissing:"ไม่พบเลขนี้ในชีต",sMissingSub:"กดบันทึกเพื่อเพิ่มเป็นแถวใหม่",
-    sPending:"ส่งไม่สำเร็จ",sPendingSub:"เก็บไว้ในเครื่องแล้ว กดส่งอีกครั้งได้",
-    sNoStaff:"ยังไม่ได้เลือกผู้ตรวจรับ",sNoStaffSub:"เลือกชื่อด้านล่างก่อนสแกน",
-    sNoCfg:"ยังไม่ได้ตั้งค่าการเชื่อมต่อ",sNoCfgSub:"ไปที่แท็บตั้งค่า",
-    sCamFail:"เปิดกล้องไม่ได้",sCamFailSub:"ตรวจสอบสิทธิ์กล้อง หรือใช้การพิมพ์เลขแทน",
-    stamp:"ตรวจรับ",empty:"ยังไม่มีรายการ",
-    cfgOk:"เชื่อมต่อสำเร็จ",cfgFail:"เชื่อมต่อไม่สำเร็จ: ",
-    confirmClear:"ล้างประวัติทั้งหมด?",confirmClearPending:"ยังมีรายการที่ยังไม่ได้บันทึกลงชีต ล้างทิ้งเลยหรือไม่?",
-    an:"AN",name:"ชื่อ - สกุล",rights:"สิทธิ",sent:"วันที่ส่งงานประกัน",sheet:"ชีต"},
-  en:{appTitle:"Chart intake",ready:"Ready to scan",readySub:"Choose who is receiving first",
-    camIdle:"Tap Start scanning to open the camera",aimHint:"Line the barcode up with the red line, hold level",
-    startCam:"Start scanning",stopCam:"Stop scanning",manual:"Type AN",manualLabel:"AN number (9 digits)",add:"Add",
-    modeSingle:"One at a time",modeBatch:"Batch scan",
-    modeNoteSingle:"Saves to the sheet as soon as it scans",modeNoteBatch:"Holds scans until you save them together",
-    staffLabel:"Received by",staffPick:"— choose a name —",commit:"Save to sheet",
-    retry:"Resend unsaved items",clear:"Clear history",
-    listNote:"History restarts on a new day. Anything already saved stays in the sheet.",
-    beepLabel:"Alerts",sound:"Sound",vibrate:"Vibrate",
-    vibNote:"Vibration works on Android only — use sound on iPhone.",
-    urlLabel:"Apps Script URL (/exec)",tokenLabel:"Access token",testSave:"Test and save",
-    tabScan:"Scan",tabList:"Items",tabSet:"Settings",
-    sFound:"Found",sFoundSub:"Intake date recorded",
-    sQueued:"Held",sQueuedSub:"Waiting to be saved",
-    sDup:"Already scanned",sDupSub:"This number is already in the current list",
-    sAlready:"Received earlier",sAlreadySub:"Recorded on ",
-    sAdded:"Not on the sending list",sAddedSub:"Added as a new row — fill in the name yourself",
-    sMissing:"Not found in the sheet",sMissingSub:"Save to add it as a new row",
-    sPending:"Could not send",sPendingSub:"Saved on this phone — try sending again",
-    sNoStaff:"No receiver chosen",sNoStaffSub:"Pick a name below before scanning",
-    sNoCfg:"Connection not set up",sNoCfgSub:"Open the Settings tab",
-    sCamFail:"Camera unavailable",sCamFailSub:"Check camera permission, or type the number instead",
-    stamp:"RECEIVED",empty:"Nothing here yet",
-    cfgOk:"Connected",cfgFail:"Could not connect: ",
-    confirmClear:"Clear all history?",confirmClearPending:"Some items have not been saved to the sheet. Clear anyway?",
-    an:"AN",name:"Name",rights:"Coverage",sent:"Sent to claims",sheet:"Sheet"}
+th:{appTitle:"ตรวจรับ Chart",ready:"พร้อมสแกน",readySub:"เลือกชื่อผู้ตรวจรับก่อนเริ่ม",
+ camIdle:"กดเริ่มสแกนเพื่อเปิดกล้อง",startCam:"เริ่มสแกน",stopCam:"หยุดสแกน",
+ manual:"พิมพ์เลข AN",manualLabel:"เลข AN (9 หลัก)",add:"เพิ่มรายการ",
+ areaLabel:"ขอบเขตการสแกน",areaTight:"แคบ",areaNormal:"ปกติ",areaWide:"กว้าง",areaFull:"ทั้งภาพ",
+ areaNoteTight:"เล็งเฉพาะแถบเดียว เหมาะกับเอกสารที่มีบาร์โค้ดหลายอันติดกัน",
+ areaNoteNormal:"สมดุลระหว่างความเร็วกับขอบเขต ใช้ได้กับงานส่วนใหญ่",
+ areaNoteWide:"ขอบเขตกว้าง วางบาร์โค้ดตรงไหนของกรอบก็ได้",
+ areaNoteFull:"อ่านทั้งภาพ ขอบเขตกว้างที่สุดแต่ช้าลงเล็กน้อย",
+ modeLabel:"โหมดบันทึก",modeSingle:"ทีละรายการ",modeBatch:"สแกนหลายรายการ",
+ modeNoteSingle:"สแกนแล้วบันทึกลงชีตทันที",modeNoteBatch:"เก็บไว้ก่อน แล้วกดบันทึกทีเดียวเมื่อสแกนครบ",
+ staffLabel:"ผู้ตรวจรับ",commit:"บันทึกลงชีต",retry:"ส่งรายการค้างอีกครั้ง",clear:"ล้างประวัติ",
+ listNote:"ประวัติเริ่มใหม่อัตโนมัติเมื่อขึ้นวันใหม่ รายการที่บันทึกลงชีตแล้วจะยังอยู่ในชีตเสมอ",
+ connLabel:"การเชื่อมต่อ",urlLabel:"ที่อยู่ Apps Script (/exec)",tokenLabel:"รหัสเชื่อมต่อ",testSave:"ทดสอบและบันทึก",
+ backupLabel:"ย้ายค่าตั้งค่าไปเครื่องอื่น",codeLabel:"รหัสตั้งค่า — คัดลอกไปวางในเครื่องอื่นได้เลย",
+ copy:"คัดลอก",paste:"วางรหัสตั้งค่า",copied:"คัดลอกแล้ว",pastePrompt:"วางรหัสตั้งค่าที่คัดลอกมา",
+ codeNote:"รหัสนี้มีทั้งลิงก์และรหัสเชื่อมต่อรวมกัน ถือเป็นความลับ อย่าส่งในกลุ่มสาธารณะ",
+ alertLabel:"การแจ้งเตือน",sound:"เสียง",vibrate:"สั่น",
+ installLabel:"ติดตั้งลงหน้าจอโฮม",install:"ติดตั้งแอป",
+ installIOS:"บน iPhone: เปิดด้วย Safari กดปุ่มแชร์ ⬆︎ แล้วเลือก “เพิ่มไปยังหน้าจอโฮม”",
+ installAndroid:"กดปุ่มด้านบน หรือเมนู ⋮ ของ Chrome แล้วเลือก “ติดตั้งแอป”",
+ installed:"ติดตั้งแล้ว — เปิดจากไอคอนบนหน้าจอโฮมได้เลย",
+ capsLabel:"ความสามารถของกล้องเครื่องนี้",capsIdle:"เปิดกล้องก่อนจึงจะตรวจได้",
+ tabScan:"สแกน",tabList:"รายการ",tabSet:"ตั้งค่า",
+ sFound:"พบในรายการ",sFoundSub:"บันทึกวันที่ตรวจรับแล้ว",
+ sQueued:"เก็บไว้แล้ว",sQueuedSub:"รอกดบันทึกลงชีต",
+ sDup:"สแกนซ้ำ",sDupSub:"เลขนี้อยู่ในรายการรอบนี้แล้ว",
+ sAlready:"ตรวจรับไปแล้ว",sAlreadySub:"บันทึกไว้เมื่อ ",
+ sAdded:"ไม่พบในรายการส่ง",sAddedSub:"เพิ่มแถวใหม่ในชีตแล้ว ต้องเติมชื่อ-สกุลเอง",
+ sMissing:"ไม่พบเลขนี้ในชีต",sMissingSub:"กดบันทึกเพื่อเพิ่มเป็นแถวใหม่",
+ sPending:"ส่งไม่สำเร็จ",sPendingSub:"เก็บไว้ในเครื่องแล้ว กดส่งอีกครั้งได้",
+ sNoStaff:"ยังไม่ได้เลือกผู้ตรวจรับ",sNoStaffSub:"เลือกชื่อด้านล่างก่อนสแกน",
+ sNoCfg:"ยังไม่ได้ตั้งค่าการเชื่อมต่อ",sNoCfgSub:"ไปที่แท็บตั้งค่า",
+ sCamFail:"เปิดกล้องไม่ได้",sCamFailSub:"ตรวจสอบสิทธิ์กล้อง หรือใช้การพิมพ์เลขแทน",
+ stamp:"ตรวจรับ",empty:"ยังไม่มีรายการ",
+ cfgOk:"เชื่อมต่อสำเร็จ",cfgFail:"เชื่อมต่อไม่สำเร็จ: ",
+ confirmClear:"ล้างประวัติทั้งหมด?",confirmClearPending:"ยังมีรายการที่ยังไม่ได้บันทึกลงชีต ล้างทิ้งเลยหรือไม่?",
+ name:"ชื่อ - สกุล",rights:"สิทธิ",sent:"วันที่ส่งงานประกัน",sheet:"ชีต",
+ focusOk:"สั่งโฟกัสใหม่แล้ว",focusRestart:"เปิดกล้องใหม่เพื่อโฟกัส",
+ focusNo:"เครื่องนี้สั่งโฟกัสจากเว็บไม่ได้",
+ capRes:"ความละเอียดที่ได้",capZoom:"ซูมด้วยเลนส์",capTorch:"ไฟฉาย",capFocus:"สั่งโฟกัสได้",capTap:"แตะเพื่อโฟกัส",
+ yes:"รองรับ",no:"ไม่รองรับ",
+ storeWarn:"เครื่องนี้จำค่าตั้งค่าไม่ได้ (เบราว์เซอร์โหมดส่วนตัว?)"},
+en:{appTitle:"Chart intake",ready:"Ready to scan",readySub:"Choose who is receiving first",
+ camIdle:"Tap Start scanning to open the camera",startCam:"Start scanning",stopCam:"Stop scanning",
+ manual:"Type AN",manualLabel:"AN number (9 digits)",add:"Add",
+ areaLabel:"Scan area",areaTight:"Tight",areaNormal:"Normal",areaWide:"Wide",areaFull:"Whole frame",
+ areaNoteTight:"One band only — best when barcodes sit close together on the page",
+ areaNoteNormal:"Balances speed and coverage. Fine for most work",
+ areaNoteWide:"Wide coverage — put the barcode anywhere in the box",
+ areaNoteFull:"Reads the whole frame. Widest coverage, slightly slower",
+ modeLabel:"Saving mode",modeSingle:"One at a time",modeBatch:"Batch scan",
+ modeNoteSingle:"Saves to the sheet as soon as it scans",modeNoteBatch:"Holds scans until you save them together",
+ staffLabel:"Received by",commit:"Save to sheet",retry:"Resend unsaved items",clear:"Clear history",
+ listNote:"History restarts on a new day. Anything already saved stays in the sheet.",
+ connLabel:"Connection",urlLabel:"Apps Script URL (/exec)",tokenLabel:"Access token",testSave:"Test and save",
+ backupLabel:"Move settings to another phone",codeLabel:"Setup code — paste this on the other phone",
+ copy:"Copy",paste:"Paste setup code",copied:"Copied",pastePrompt:"Paste the setup code you copied",
+ codeNote:"This code contains both the link and the token. Treat it as confidential.",
+ alertLabel:"Alerts",sound:"Sound",vibrate:"Vibrate",
+ installLabel:"Add to home screen",install:"Install app",
+ installIOS:"On iPhone: open in Safari, tap Share ⬆︎, then “Add to Home Screen”",
+ installAndroid:"Tap the button above, or Chrome menu ⋮ → “Install app”",
+ installed:"Installed — open it from the home screen icon",
+ capsLabel:"What this phone's camera supports",capsIdle:"Start the camera to check",
+ tabScan:"Scan",tabList:"Items",tabSet:"Settings",
+ sFound:"Found",sFoundSub:"Intake date recorded",
+ sQueued:"Held",sQueuedSub:"Waiting to be saved",
+ sDup:"Already scanned",sDupSub:"This number is already in the current list",
+ sAlready:"Received earlier",sAlreadySub:"Recorded on ",
+ sAdded:"Not on the sending list",sAddedSub:"Added as a new row — fill in the name yourself",
+ sMissing:"Not found in the sheet",sMissingSub:"Save to add it as a new row",
+ sPending:"Could not send",sPendingSub:"Saved on this phone — try sending again",
+ sNoStaff:"No receiver chosen",sNoStaffSub:"Pick a name below before scanning",
+ sNoCfg:"Connection not set up",sNoCfgSub:"Open the Settings tab",
+ sCamFail:"Camera unavailable",sCamFailSub:"Check camera permission, or type the number instead",
+ stamp:"RECEIVED",empty:"Nothing here yet",
+ cfgOk:"Connected",cfgFail:"Could not connect: ",
+ confirmClear:"Clear all history?",confirmClearPending:"Some items have not been saved to the sheet. Clear anyway?",
+ name:"Name",rights:"Coverage",sent:"Sent to claims",sheet:"Sheet",
+ focusOk:"Refocused",focusRestart:"Restarted camera to refocus",
+ focusNo:"This phone can't be told to focus from the web",
+ capRes:"Resolution in use",capZoom:"Lens zoom",capTorch:"Torch",capFocus:"Focus control",capTap:"Tap to focus",
+ yes:"supported",no:"not supported",
+ storeWarn:"This browser can't remember settings (private mode?)"}
 };
 let LANG = "th";
 const t = k => (I18N[LANG][k] ?? k);
 
-function applyLang(){
-  document.documentElement.lang = LANG;
-  document.querySelectorAll("[data-i18n]").forEach(el => el.textContent = t(el.dataset.i18n));
-  $("langBtn").textContent = LANG === "th" ? "EN" : "ไทย";
-  $("camBtn").textContent  = running ? t("stopCam") : t("startCam");
-  $("modeNote").textContent = mode === "batch" ? t("modeNoteBatch") : t("modeNoteSingle");
-  renderList();
-}
-
-/* ═══ 2. ที่เก็บข้อมูล ═════════════════════════════════════
-   ห่อ localStorage ไว้ เพราะบางบริบท (preview / โหมดส่วนตัว) เขียนไม่ได้
-   ถ้าเขียนไม่ได้ให้ใช้หน่วยความจำแทน แอปยังทำงานได้ในรอบนั้น        */
+/* ═══ 2. ที่เก็บข้อมูล ═════════════════════════════════ */
 const Store = (() => {
   let ok = true, mem = {};
   try { localStorage.setItem("__t","1"); localStorage.removeItem("__t"); } catch(e){ ok = false; }
-  return {
-    ok,
+  return { ok,
     get:k => { try { return ok ? localStorage.getItem(k) : (mem[k] ?? null); } catch(e){ return mem[k] ?? null; } },
-    set:(k,v) => { try { ok ? localStorage.setItem(k,v) : (mem[k]=v); } catch(e){ mem[k]=v; } }
-  };
+    set:(k,v) => { try { ok ? localStorage.setItem(k,v) : (mem[k]=v); } catch(e){ mem[k]=v; } } };
 })();
-
 const KEY = { SESSION:"cr_session", CFG:"cr_cfg", PREF:"cr_pref" };
-const todayKey = () => new Date().toLocaleDateString("sv-SE");   // 2026-08-22 ตามเวลาเครื่อง
+const todayKey = () => new Date().toLocaleDateString("sv-SE");
 
 let cfg = { url:"", token:"" };
-let pref = { lang:"th", sound:true, vibrate:true, staff:"" };
+let pref = { lang:"th", sound:true, vibrate:true, staff:"", area:"normal" };
 let session = { date:todayKey(), items:[] };
 let mode = "single";
 
 function loadAll(){
   try { Object.assign(cfg,  JSON.parse(Store.get(KEY.CFG)  || "{}")); } catch(e){}
   try { Object.assign(pref, JSON.parse(Store.get(KEY.PREF) || "{}")); } catch(e){}
-  try {
-    const s = JSON.parse(Store.get(KEY.SESSION) || "null");
-    if (s && s.date === todayKey()) session = s;
-  } catch(e){}
+  try { const s = JSON.parse(Store.get(KEY.SESSION) || "null");
+        if (s && s.date === todayKey()) session = s; } catch(e){}
   LANG = pref.lang || "th";
+  if (!AREAS[pref.area]) pref.area = "normal";
 }
 const saveSession = () => Store.set(KEY.SESSION, JSON.stringify(session));
 const savePref    = () => Store.set(KEY.PREF, JSON.stringify(pref));
+const saveCfg     = () => { Store.set(KEY.CFG, JSON.stringify(cfg)); renderCfgCode(); };
 
-/* รีเซ็ตรายวัน — ตรวจทั้งตอนเปิดแอปและตอนกลับมาหน้าจอ */
 function rollDate(){
   const d = todayKey();
   if (session.date === d) return;
-  const stuck = session.items.filter(i => i.status === "pending" || i.status === "queued");
-  session = { date:d, items:stuck };          // รายการที่ยังไม่ถูกบันทึกจะไม่หาย
+  // รายการที่ยังไม่ถูกบันทึกลงชีตต้องไม่หายไปกับการขึ้นวันใหม่
+  session = { date:d, items:session.items.filter(i => i.status === "pending" || i.status === "queued") };
   saveSession(); renderList(); updateBadge();
 }
 
@@ -415,7 +434,8 @@ function beep(kind){
     if (actx.state === "suspended") actx.resume();
     const seq = { ok:[[880,.09]], warn:[[620,.08],[0,.05],[620,.08]], error:[[240,.32]] }[kind] || [[880,.09]];
     let at = actx.currentTime;
-    seq.forEach(([hz,dur]) => {
+    seq.forEach(pair => {
+      const hz = pair[0], dur = pair[1];
       if (hz){
         const o = actx.createOscillator(), g = actx.createGain();
         o.type = "square"; o.frequency.value = hz;
@@ -429,21 +449,19 @@ function beep(kind){
   } catch(e){}
 }
 function buzz(kind){
-  if (!pref.vibrate || !navigator.vibrate) return;   // iOS ไม่รองรับ — เงียบไปเฉย ๆ
+  if (!pref.vibrate || !navigator.vibrate) return;
   try { navigator.vibrate({ ok:60, warn:[45,55,45], error:[130,60,130] }[kind] || 60); } catch(e){}
 }
-const alertUser = kind => { beep(kind); buzz(kind); };
+const alertUser = k => { beep(k); buzz(k); };
 
-/* ═══ 4. เรียก API ═════════════════════════════════════
-   ส่งเป็น text/plain เพื่อเลี่ยง CORS preflight
-   (Apps Script ไม่รองรับ OPTIONS — ถ้าส่ง application/json จะโดนบล็อก) */
+/* ═══ 4. API ═══════════════════════════════════════════ */
 async function api(action, payload, url, token){
   const target = url || cfg.url, tok = token !== undefined ? token : cfg.token;
   if (!target) throw new Error("NO_URL");
   const res = await fetch(target, {
     method:"POST", redirect:"follow",
-    headers:{ "Content-Type":"text/plain;charset=utf-8" },
-    body: JSON.stringify(Object.assign({ action, token:tok }, payload || {}))
+    headers:{ "Content-Type":"text/plain;charset=utf-8" },   // เลี่ยง CORS preflight ของ Apps Script
+    body: JSON.stringify(Object.assign({ action:action, token:tok }, payload || {}))
   });
   if (!res.ok) throw new Error("HTTP_" + res.status);
   const data = await res.json();
@@ -451,46 +469,138 @@ async function api(action, payload, url, token){
   return data;
 }
 
-/* ═══ 5. หน้าจอ ════════════════════════════════════════ */
-const $ = id => document.getElementById(id);
-const normalizeAN = v => String(v ?? "").replace(/\D/g, "");
+/* ═══ 5. เครื่องอ่านบาร์โค้ด ═══════════════════════════
+   เขียน loop เอง แทน decodeFromConstraints เพื่อควบคุมได้ว่า
+   อ่านส่วนไหนของภาพ ที่ความละเอียดเท่าไร และผ่านการประมวลผลแบบใด */
+const AREAS = {
+  tight:  { w:.80, h:.16 },
+  normal: { w:.92, h:.30 },
+  wide:   { w:1,   h:.55 },
+  full:   { w:1,   h:1   }
+};
+
+const FORMATS = [ZXing.BarcodeFormat.CODE_39, ZXing.BarcodeFormat.CODE_128];
+function makeReader(tryHarder){
+  const h = new Map();
+  h.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, FORMATS);
+  if (tryHarder) h.set(ZXing.DecodeHintType.TRY_HARDER, true);
+  const m = new ZXing.MultiFormatReader();
+  m.setHints(h);
+  return m;
+}
+// TRY_HARDER แม่นกว่าแต่แพงกว่า — ใช้กับแถบที่เล็ง ส่วนการกวาดทั้งภาพใช้แบบเร็ว
+const readerHard = makeReader(true);
+const readerFast = makeReader(false);
+
+const cv = document.createElement("canvas");
+const cx = cv.getContext("2d", { willReadFrequently:true });
+
+/** ยืดคอนทราสต์แบบตัดหัวท้าย 2% — ช่วยมากกับกระดาษสีและห้องแสงน้อย */
+function stretch(lum){
+  const hist = new Uint32Array(256);
+  for (let i = 0; i < lum.length; i++) hist[lum[i]]++;
+  const cut = lum.length * .02;
+  let lo = 0, hi = 255, acc = 0;
+  for (let i = 0; i < 256; i++){ acc += hist[i]; if (acc > cut){ lo = i; break; } }
+  acc = 0;
+  for (let i = 255; i >= 0; i--){ acc += hist[i]; if (acc > cut){ hi = i; break; } }
+  if (hi - lo < 12) return lum;
+  const lut = new Uint8ClampedArray(256), span = hi - lo;
+  for (let i = 0; i < 256; i++) lut[i] = Math.max(0, Math.min(255, ((i - lo) * 255) / span));
+  const out = new Uint8ClampedArray(lum.length);
+  for (let i = 0; i < lum.length; i++) out[i] = lut[lum[i]];
+  return out;
+}
+
+/** วาดส่วนหนึ่งของเฟรมลง canvas แล้วให้ ZXing อ่าน */
+function decodeRegion(sx, sy, sw, sh, maxW, useStretch, reader){
+  reader = reader || readerHard;
+  if (sw < 40 || sh < 20) return null;
+  const scale = Math.min(1, maxW / sw);
+  const dw = Math.max(40, Math.round(sw * scale)), dh = Math.max(20, Math.round(sh * scale));
+  if (cv.width !== dw || cv.height !== dh){ cv.width = dw; cv.height = dh; }
+  try { cx.drawImage($("video"), sx, sy, sw, sh, 0, 0, dw, dh); } catch(e){ return null; }
+
+  let d;
+  try { d = cx.getImageData(0, 0, dw, dh).data; } catch(e){ return null; }
+  let lum = new Uint8ClampedArray(dw * dh);
+  for (let i = 0, p = 0; i < lum.length; i++, p += 4)
+    lum[i] = (d[p] * 306 + d[p+1] * 601 + d[p+2] * 117) >> 10;
+  if (useStretch) lum = stretch(lum);
+
+  try {
+    const src = new ZXing.RGBLuminanceSource(lum, dw, dh);
+    const r = reader.decode(new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(src)));
+    reader.reset();
+    return r ? r.getText() : null;
+  } catch(e){ reader.reset(); return null; }
+}
+
+let tick = 0, decoding = false, decodeTimer = null, skipUntil = 0;
+
+function scanFrame(){
+  const v = $("video");
+  if (!running || decoding || v.readyState < 2) return;
+  if (Date.now() < skipUntil) return;          // เครื่องช้า: เว้นจังหวะให้ UI หายใจ
+  const vw = v.videoWidth, vh = v.videoHeight;
+  if (!vw || !vh) return;
+  decoding = true;
+  const t0 = Date.now();
+
+  const a = AREAS[pref.area] || AREAS.normal;
+  const bw = Math.round(vw * a.w), bh = Math.round(vh * a.h);
+  const bx = (vw - bw) >> 1, by = (vh - bh) >> 1;
+
+  let text = null;
+  const phase = tick++ % 3;
+  if (phase === 0){
+    // แถบที่เล็ง ความละเอียดเต็ม → จับบาร์โค้ดที่อยู่ไกลหรือเล็ก
+    text = decodeRegion(bx, by, bw, bh, 2200, false, readerHard);
+  } else if (phase === 1){
+    // กวาดทั้งภาพแบบเร็ว → บาร์โค้ดที่หลุดออกนอกแถบก็ยังจับได้
+    text = decodeRegion(0, 0, vw, vh, 1300, false, readerFast);
+  } else {
+    // แถบ + ยืดคอนทราสต์ → กระดาษสีเข้มหรือห้องแสงน้อย
+    text = decodeRegion(bx, by, bw, bh, 2200, true, readerHard);
+  }
+
+  const spent = Date.now() - t0;
+  if (spent > 130) skipUntil = Date.now() + spent;   // รอบไหนหนัก ให้พักเท่ากับเวลาที่ใช้
+  decoding = false;
+  if (text) handleCode(text);
+}
+
+/* ═══ 6. หน้าจอ ════════════════════════════════════════ */
+const normalizeAN = v => String(v == null ? "" : v).replace(/\D/g, "");
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g,
+  c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
 function setStatus(s, title, sub){
-  const el = $("status");
-  el.dataset.s = s;
+  $("status").dataset.s = s;
   $("stIcon").textContent  = { ok:"✓", already:"!", added:"+", error:"✕", idle:"◻" }[s] || "◻";
   $("stTitle").textContent = title;
   $("stSub").textContent   = sub || "";
 }
-
 function showCard(rec, stamped){
   if (!rec){ $("cardSlot").innerHTML = ""; return; }
-  const rows = [
-    rec.name   ? [t("name"), rec.name] : null,
-    rec.rights ? [t("rights"), rec.rights] : null,
-    rec.sent   ? [t("sent"), rec.sent] : null
-  ].filter(Boolean);
-
-  $("cardSlot").innerHTML =
-    '<div class="card">' +
-      (stamped ? '<div class="stamp hit">' + esc(t("stamp")) + '<small>' + esc(stamped) + '</small></div>' : '') +
-      '<div class="an mono">' + esc(rec.an) + '</div>' +
-      (rows.length ? '<dl>' + rows.map(r => '<dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd>').join('') + '</dl>' : '') +
-      (rec.sheet ? '<div class="src">' + esc(t("sheet")) + ' · ' + esc(rec.sheet) + '</div>' : '') +
-    '</div>';
+  const rows = [];
+  if (rec.name)   rows.push([t("name"), rec.name]);
+  if (rec.rights) rows.push([t("rights"), rec.rights]);
+  if (rec.sent)   rows.push([t("sent"), rec.sent]);
+  $("cardSlot").innerHTML = '<div class="card">' +
+    (stamped ? '<div class="stamp hit">' + esc(t("stamp")) + '<small>' + esc(stamped) + '</small></div>' : '') +
+    '<div class="an mono">' + esc(rec.an) + '</div>' +
+    (rows.length ? '<dl>' + rows.map(r => '<dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd>').join('') + '</dl>' : '') +
+    (rec.sheet ? '<div class="src">' + esc(t("sheet")) + ' · ' + esc(rec.sheet) + '</div>' : '') + '</div>';
 }
-function esc(s){ return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
-
 function renderList(){
   const items = session.items.slice().reverse();
   $("listCount").textContent = items.length ? items.length + " " + (LANG==="th"?"รายการ":"items") : "";
-  if (!items.length){ $("list").innerHTML = '<p class="empty">' + esc(t("empty")) + '</p>'; return; }
-  $("list").innerHTML = items.map(i =>
-    '<div class="item" data-s="' + esc(i.status) + '">' +
-      '<span class="dot"></span>' +
-      '<span class="an mono">' + esc(i.an) + '</span>' +
-      '<span class="meta">' + esc(i.label || "") + '<br>' + esc(i.time || "") + '</span>' +
-    '</div>').join("");
+  $("list").innerHTML = items.length
+    ? items.map(i => '<div class="item" data-s="' + esc(i.status) + '"><span class="dot"></span>' +
+        '<span class="an mono">' + esc(i.an) + '</span><span class="meta">' +
+        esc(i.label || "") + '<br>' + esc(i.time || "") + '</span></div>').join("")
+    : '<p class="empty">' + esc(t("empty")) + '</p>';
 }
 function updateBadge(){
   const n = session.items.filter(i => i.status === "queued" || i.status === "pending").length;
@@ -500,24 +610,37 @@ function updateBadge(){
   $("retryBtn").disabled = !session.items.some(i => i.status === "pending");
 }
 const clockStr = () => new Date().toLocaleTimeString(LANG==="th"?"th-TH":"en-GB",{hour:"2-digit",minute:"2-digit"});
+const areaNoteKey = () => "areaNote" + pref.area.charAt(0).toUpperCase() + pref.area.slice(1);
 
-/* ═══ 6. กระบวนการสแกน ════════════════════════════════ */
+function applyLang(){
+  document.documentElement.lang = LANG;
+  document.querySelectorAll("[data-i18n]").forEach(el => el.textContent = t(el.dataset.i18n));
+  $("langBtn").textContent = LANG === "th" ? "EN" : "ไทย";
+  $("camBtn").textContent = running ? t("stopCam") : t("startCam");
+  $("modeNote").textContent = mode === "batch" ? t("modeNoteBatch") : t("modeNoteSingle");
+  $("areaNote").textContent = t(areaNoteKey());
+  $("staff").options[0].textContent = LANG === "th" ? "— เลือกชื่อ —" : "— choose a name —";
+  $("installNote").textContent = installNote();
+  $("ver").textContent = "v" + VERSION + (Store.ok ? "" : " · " + t("storeWarn"));
+  renderList(); renderCaps();
+}
+
+/* ═══ 7. ขั้นตอนการสแกน ════════════════════════════════ */
 let running = false, lastCode = "", lastAt = 0, busy = false;
-const COOLDOWN = 2500;   // กล้องอ่านซ้ำได้หลายสิบครั้ง/วินาที ต้องกันไว้
+const COOLDOWN = 2500;
 
 async function handleCode(raw){
   const an = normalizeAN(raw);
   if (an.length < 6) return;
-
   const now = Date.now();
-  if (an === lastCode && now - lastAt < COOLDOWN) return;   // อ่านรัวจากเฟรมเดียวกัน
+  if (an === lastCode && now - lastAt < COOLDOWN) return;   // กล้องอ่านค่าเดิมซ้ำได้หลายสิบครั้ง/วินาที
   lastCode = an; lastAt = now;
 
-  if (session.items.some(i => i.an === an && i.status !== "error")){
-    alertUser("warn");
-    setStatus("already", t("sDup"), t("sDupSub"));
-    showCard({ an });
-    return;
+  $("reticle").classList.add("hit");
+  setTimeout(() => $("reticle").classList.remove("hit"), 400);
+
+  if (session.items.some(i => i.an === an)){
+    alertUser("warn"); setStatus("already", t("sDup"), t("sDupSub")); showCard({ an:an }); return;
   }
   if (busy) return;
   await processAN(an);
@@ -528,47 +651,32 @@ async function processAN(an){
   if (!cfg.url){ alertUser("error"); setStatus("error", t("sNoCfg"), t("sNoCfgSub")); return; }
 
   busy = true;
-  // เขียนลงเครื่องก่อนเสมอ — เน็ตหลุดข้อมูลจะได้ไม่หาย
-  const entry = { an, status:"queued", label:t("sQueued"), time:clockStr() };
-  session.items.push(entry); saveSession(); renderList(); updateBadge();
+  const entry = { an:an, status:"queued", label:t("sQueued"), time:clockStr() };
+  session.items.push(entry); saveSession(); renderList(); updateBadge();   // เขียนลงเครื่องก่อนเสมอ
 
   try {
-    const res = await api("lookup", { an });
+    const res = await api("lookup", { an:an });
     const hit = res.found ? res.matches[0] : null;
 
     if (hit && hit.recvDate){
-      entry.status = "already"; entry.label = t("sAlready"); entry.sheet = hit.sheet; entry.row = hit.row;
+      entry.status = "already"; entry.label = t("sAlready");
+      entry.sheet = hit.sheet; entry.row = hit.row;
       alertUser("warn");
       setStatus("already", t("sAlready"), t("sAlreadySub") + hit.recvDate + (hit.recvBy ? " · " + hit.recvBy : ""));
       showCard(hit);
     } else if (hit){
-      entry.sheet = hit.sheet; entry.row = hit.row; entry.name = hit.name;
-      if (mode === "single"){
-        const stamp = await commitItems([entry]);
-        showCard(hit, stamp || "");
-      } else {
-        alertUser("ok");
-        setStatus("ok", t("sFound"), t("sQueuedSub"));
-        showCard(hit);
-      }
+      entry.sheet = hit.sheet; entry.row = hit.row;
+      if (mode === "single"){ showCard(hit, await commitItems([entry])); }
+      else { alertUser("ok"); setStatus("ok", t("sFound"), t("sQueuedSub")); showCard(hit); }
     } else {
       entry.label = t("sMissing");
-      if (mode === "single"){
-        const stamp = await commitItems([entry]);
-        showCard({ an }, stamp || "");
-      } else {
-        alertUser("warn");
-        setStatus("added", t("sMissing"), t("sMissingSub"));
-        showCard({ an });
-      }
+      if (mode === "single"){ showCard({ an:an }, await commitItems([entry])); }
+      else { alertUser("warn"); setStatus("added", t("sMissing"), t("sMissingSub")); showCard({ an:an }); }
     }
-  } catch (err){
+  } catch(err){
     entry.status = "pending"; entry.label = t("sPending");
-    alertUser("error");
-    setStatus("error", t("sPending"), t("sPendingSub"));
-    showCard({ an });
+    alertUser("error"); setStatus("error", t("sPending"), t("sPendingSub")); showCard({ an:an });
   }
-
   saveSession(); renderList(); updateBadge(); busy = false;
 }
 
@@ -577,125 +685,220 @@ async function commitItems(entries){
   if (!list.length) return "";
   let stamp = "";
   try {
-    const res = await api("commit", {
-      user: pref.staff,
-      items: list.map(e => ({ an:e.an, sheet:e.sheet, row:e.row }))
-    });
+    const res = await api("commit", { user:pref.staff,
+      items:list.map(e => ({ an:e.an, sheet:e.sheet, row:e.row })) });
     if (!res.ok) throw new Error(res.error || "FAIL");
     stamp = res.stamp || "";
-
     res.results.forEach((r, i) => {
       const e = list[i]; if (!e) return;
-      e.status = r.status === "ok" ? "ok" : r.status === "added" ? "added" : r.status === "already" ? "already" : "pending";
+      e.status = (r.status === "ok" || r.status === "added" || r.status === "already") ? r.status : "pending";
       e.label  = { ok:t("sFound"), added:t("sAdded"), already:t("sAlready") }[r.status] || t("sPending");
       e.time   = clockStr();
       if (r.sheet){ e.sheet = r.sheet; e.row = r.row; }
     });
-
     const worst = res.results.some(r => r.status === "added") ? "added"
                 : res.results.some(r => r.status === "already") ? "already" : "ok";
     alertUser(worst === "ok" ? "ok" : "warn");
-    setStatus(worst,
-      worst === "ok" ? t("sFound") : worst === "added" ? t("sAdded") : t("sAlready"),
-      worst === "ok" ? t("sFoundSub") : worst === "added" ? t("sAddedSub") : "");
-
-  } catch (err){
+    setStatus(worst, worst === "ok" ? t("sFound") : worst === "added" ? t("sAdded") : t("sAlready"),
+              worst === "ok" ? t("sFoundSub") : worst === "added" ? t("sAddedSub") : "");
+  } catch(err){
     list.forEach(e => { e.status = "pending"; e.label = t("sPending"); });
-    alertUser("error");
-    setStatus("error", t("sPending"), t("sPendingSub"));
+    alertUser("error"); setStatus("error", t("sPending"), t("sPendingSub"));
   }
   saveSession(); renderList(); updateBadge();
   return stamp;
 }
 
-/* ═══ 7. กล้อง ═════════════════════════════════════════ */
-let reader = null, track = null, digitalZoom = 1;
+/* ═══ 8. กล้อง ═════════════════════════════════════════ */
+let stream = null, videoTrack = null, caps = {}, wakeLock = null;
 
-function makeReader(){
-  const hints = new Map();
-  hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
-    ZXing.BarcodeFormat.CODE_39,      // ← บาร์โค้ดบน chart จริง
-    ZXing.BarcodeFormat.CODE_128
-  ]);
-  hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
-  return new ZXing.BrowserMultiFormatReader(hints, 200);
+/* ไล่ขอความละเอียดจากสูงไปต่ำ — ยิ่งสูง พิกเซลที่ตกบนบาร์โค้ดยิ่งมาก
+   นี่คือปัจจัยเดียวที่ทำให้ "ตั้งเครื่องไกลขึ้นแล้วยังอ่านได้" */
+const LADDER = [
+  { width:{ ideal:3840 }, height:{ ideal:2160 } },
+  { width:{ ideal:2560 }, height:{ ideal:1440 } },
+  { width:{ ideal:1920 }, height:{ ideal:1080 } },
+  {}
+];
+
+async function openStream(){
+  let lastErr;
+  for (let i = 0; i < LADDER.length; i++){
+    try {
+      return await navigator.mediaDevices.getUserMedia({
+        audio:false,
+        video: Object.assign({ facingMode:{ ideal:"environment" } }, LADDER[i])
+      });
+    } catch(e){ lastErr = e; }
+  }
+  throw lastErr || new Error("NO_CAMERA");
 }
 
 async function startCam(){
   try {
-    reader = reader || makeReader();
-    await reader.decodeFromConstraints(
-      { video:{ facingMode:{ ideal:"environment" }, width:{ ideal:1920 }, height:{ ideal:1080 } } },
-      $("video"),
-      (result) => { if (result) handleCode(result.getText()); }
-    );
+    stream = await openStream();
+    const v = $("video");
+    v.srcObject = stream;
+    try { await v.play(); } catch(e){}
+    videoTrack = stream.getVideoTracks()[0];
+    caps = (videoTrack && videoTrack.getCapabilities) ? (videoTrack.getCapabilities() || {}) : {};
+
     running = true;
     $("stage").classList.remove("off");
-    $("reticle").hidden = false; $("camTools").hidden = false; $("zoomWrap").hidden = false;
+    $("reticle").hidden = false; $("camTools").hidden = false; $("hud").hidden = false;
     $("camBtn").textContent = t("stopCam");
-    setupCamControls();
-    beep("ok");   // ปลุก AudioContext ด้วยการกดของผู้ใช้
-  } catch (err){
+
+    setupControls(); mapReticle(); renderCaps(); keepAwake();
+    clearInterval(decodeTimer);
+    decodeTimer = setInterval(scanFrame, 90);
+    beep("ok");                     // ปลุก AudioContext ด้วยการกดของผู้ใช้
+  } catch(err){
     setStatus("error", t("sCamFail"), t("sCamFailSub"));
     $("manualBox").hidden = false;
   }
 }
 
 function stopCam(){
-  try { reader && reader.reset(); } catch(e){}
-  running = false; track = null;
+  running = false;
+  clearInterval(decodeTimer); decodeTimer = null;
+  try { if (stream) stream.getTracks().forEach(tr => tr.stop()); } catch(e){}
+  stream = null; videoTrack = null;
+  try { if (wakeLock) wakeLock.release(); } catch(e){}
+  wakeLock = null;
   $("stage").classList.add("off");
-  $("reticle").hidden = true; $("camTools").hidden = true; $("zoomWrap").hidden = true;
+  $("reticle").hidden = true; $("camTools").hidden = true;
+  $("zoomWrap").hidden = true; $("hud").hidden = true;
   $("camBtn").textContent = t("startCam");
 }
 
-function setupCamControls(){
-  const stream = $("video").srcObject;
-  track = stream && stream.getVideoTracks ? stream.getVideoTracks()[0] : null;
-  if (!track) return;
-  const caps = track.getCapabilities ? track.getCapabilities() : {};
-
-  $("torchBtn").hidden = !caps.torch;
-
-  const z = $("zoom");
-  if (caps.zoom){                     // Android: ซูมด้วยเลนส์จริง คมกว่า
-    z.min = caps.zoom.min; z.max = Math.min(caps.zoom.max, caps.zoom.min * 5);
-    z.step = caps.zoom.step || .1; z.value = caps.zoom.min;
-    z.dataset.native = "1";
-  } else {                            // iOS: ไม่มี zoom API — ใช้ขยายภาพแทน
-    z.min = 1; z.max = 4; z.step = .1; z.value = digitalZoom;
-    z.dataset.native = "";
-  }
-  try { track.applyConstraints({ advanced:[{ focusMode:"continuous" }] }); } catch(e){}
+async function keepAwake(){
+  try { if ("wakeLock" in navigator) wakeLock = await navigator.wakeLock.request("screen"); } catch(e){}
 }
 
+function resText(){
+  const s = (videoTrack && videoTrack.getSettings) ? videoTrack.getSettings() : {};
+  return (s.width || "?") + "×" + (s.height || "?");
+}
+
+function setupControls(){
+  $("torchBtn").hidden = !caps.torch;
+  $("zoomWrap").hidden = !caps.zoom;      // ซ่อนไปเลยดีกว่าโชว์ปุ่มที่กดแล้วไม่เกิดอะไร
+  if (caps.zoom){
+    const z = $("zoom"), s = videoTrack.getSettings();
+    z.min = caps.zoom.min; z.max = caps.zoom.max;
+    z.step = caps.zoom.step || .1;
+    z.value = s.zoom || caps.zoom.min;
+  }
+  $("hud").textContent = resText();
+  try {
+    if (caps.focusMode && caps.focusMode.indexOf("continuous") !== -1)
+      videoTrack.applyConstraints({ advanced:[{ focusMode:"continuous" }] });
+  } catch(e){}
+}
+
+/** วางกรอบบนจอให้ตรงกับพื้นที่ที่อ่านจริง (วิดีโอใช้ object-fit: cover) */
+function mapReticle(){
+  const v = $("video"), r = $("reticle");
+  const vw = v.videoWidth, vh = v.videoHeight;
+  if (!vw || !vh) return;
+  const elW = v.clientWidth, elH = v.clientHeight;
+  const scale = Math.max(elW / vw, elH / vh);
+  const a = AREAS[pref.area] || AREAS.normal;
+  const w = Math.min(elW, vw * a.w * scale), h = Math.min(elH, vh * a.h * scale);
+  r.style.width = w + "px"; r.style.height = h + "px";
+  r.style.left = ((elW - w) / 2) + "px"; r.style.top = ((elH - h) / 2) + "px";
+  r.classList.toggle("full", pref.area === "full");
+}
+window.addEventListener("resize", () => { if (running) mapReticle(); });
+
 $("zoom").addEventListener("input", e => {
-  const v = parseFloat(e.target.value);
-  if (e.target.dataset.native && track){
-    track.applyConstraints({ advanced:[{ zoom:v }] }).catch(()=>{});
+  if (!videoTrack) return;
+  videoTrack.applyConstraints({ advanced:[{ zoom:parseFloat(e.target.value) }] }).catch(function(){});
+});
+
+$("torchBtn").addEventListener("click", e => {
+  e.stopPropagation();
+  if (!videoTrack) return;
+  const on = $("torchBtn").getAttribute("aria-pressed") === "true";
+  videoTrack.applyConstraints({ advanced:[{ torch:!on }] })
+    .then(() => $("torchBtn").setAttribute("aria-pressed", String(!on)))
+    .catch(function(){});
+});
+
+/* ปุ่มโฟกัส — v1 สั่ง focusMode:'manual' โดยไม่เช็คว่ารองรับไหม
+   เบราว์เซอร์จึงปฏิเสธเงียบ ๆ ปุ่มเลยไม่มีปฏิกิริยา
+   ตอนนี้เลือกวิธีตามที่เครื่องรองรับจริง และถ้าสั่งไม่ได้เลย
+   จะเปิดกล้องใหม่เพื่อให้ระบบโฟกัสอัตโนมัติทำงานอีกรอบ */
+async function refocus(){
+  const btn = $("focusBtn");
+  btn.classList.remove("ping"); void btn.offsetWidth; btn.classList.add("ping");
+  if (!videoTrack) return;
+
+  const modes = caps.focusMode || [];
+  try {
+    if (modes.indexOf("single-shot") !== -1){
+      await videoTrack.applyConstraints({ advanced:[{ focusMode:"single-shot" }] });
+      flashHud(t("focusOk")); return;
+    }
+    if (modes.indexOf("continuous") !== -1){
+      await videoTrack.applyConstraints({ advanced:[{ focusMode:"manual" }] }).catch(function(){});
+      await videoTrack.applyConstraints({ advanced:[{ focusMode:"continuous" }] });
+      flashHud(t("focusOk")); return;
+    }
+  } catch(e){ /* ตกไปใช้วิธีสำรอง */ }
+
+  flashHud(t("focusRestart"));
+  await restartCam();
+}
+
+async function restartCam(){
+  stopCam();
+  await new Promise(r => setTimeout(r, 250));
+  await startCam();
+}
+
+let hudTimer = null;
+function flashHud(msg){
+  $("hud").textContent = msg;
+  clearTimeout(hudTimer);
+  hudTimer = setTimeout(() => { $("hud").textContent = resText(); }, 1800);
+}
+
+/* แตะที่ภาพเพื่อโฟกัสจุดนั้น (เฉพาะเครื่องที่รองรับ pointsOfInterest) */
+$("stage").addEventListener("click", e => {
+  if (!running || !videoTrack) return;
+  if (e.target.closest(".tool") || e.target.closest(".zoomwrap")) return;
+  const box = $("video").getBoundingClientRect();
+  const x = Math.min(1, Math.max(0, (e.clientX - box.left) / box.width));
+  const y = Math.min(1, Math.max(0, (e.clientY - box.top) / box.height));
+  if (caps.pointsOfInterest){
+    videoTrack.applyConstraints({ advanced:[{ pointsOfInterest:[{ x:x, y:y }] }] })
+      .then(() => flashHud(t("focusOk")))
+      .catch(() => refocus());
   } else {
-    digitalZoom = v;
-    $("video").style.transform = "scale(" + v + ")";
+    refocus();
   }
 });
+$("focusBtn").addEventListener("click", e => { e.stopPropagation(); refocus(); });
 
-$("torchBtn").addEventListener("click", () => {
-  if (!track) return;
-  const on = $("torchBtn").getAttribute("aria-pressed") === "true";
-  track.applyConstraints({ advanced:[{ torch:!on }] })
-    .then(() => $("torchBtn").setAttribute("aria-pressed", String(!on)))
-    .catch(()=>{});
-});
+function renderCaps(){
+  const el = $("caps");
+  if (!videoTrack){
+    el.innerHTML = '<div><span>' + esc(t("capsIdle")) + '</span><span></span></div>';
+    return;
+  }
+  const yn = v => v ? t("yes") : t("no");
+  const rows = [
+    [t("capRes"), resText()],
+    [t("capZoom"), caps.zoom ? (caps.zoom.min + "–" + caps.zoom.max + "×") : t("no")],
+    [t("capTorch"), yn(!!caps.torch)],
+    [t("capFocus"), caps.focusMode ? caps.focusMode.join(", ") : t("no")],
+    [t("capTap"), yn(!!caps.pointsOfInterest)]
+  ];
+  el.innerHTML = rows.map(r => '<div><span>' + esc(r[0]) + '</span><span>' + esc(r[1]) + '</span></div>').join("");
+}
 
-$("focusBtn").addEventListener("click", () => {
-  if (!track) return;
-  // สั่งโฟกัสใหม่ — จำเป็นเพราะ Code 39 ทนภาพเบลอได้น้อยมาก
-  track.applyConstraints({ advanced:[{ focusMode:"manual" }] })
-    .then(() => track.applyConstraints({ advanced:[{ focusMode:"continuous" }] }))
-    .catch(()=>{});
-});
-
-/* ═══ 8. เหตุการณ์อื่น ═════════════════════════════════ */
+/* ═══ 9. เหตุการณ์ ═════════════════════════════════════ */
 $("camBtn").addEventListener("click", () => running ? stopCam() : startCam());
 
 $("manualBtn").addEventListener("click", () => {
@@ -706,12 +909,21 @@ $("manualGo").addEventListener("click", async () => {
   const an = normalizeAN($("manualIn").value);
   if (an.length < 6) return;
   $("manualIn").value = "";
-  if (session.items.some(i => i.an === an && i.status !== "error")){
-    alertUser("warn"); setStatus("already", t("sDup"), t("sDupSub")); showCard({ an }); return;
+  if (session.items.some(i => i.an === an)){
+    alertUser("warn"); setStatus("already", t("sDup"), t("sDupSub")); showCard({ an:an }); return;
   }
   await processAN(an);
 });
 $("manualIn").addEventListener("keydown", e => { if (e.key === "Enter") $("manualGo").click(); });
+
+$("areaSeg").addEventListener("click", e => {
+  const b = e.target.closest("[data-area]"); if (!b) return;
+  pref.area = b.dataset.area; savePref();
+  Array.prototype.forEach.call($("areaSeg").children,
+    c => c.setAttribute("aria-pressed", String(c === b)));
+  $("areaNote").textContent = t(areaNoteKey());
+  if (running) mapReticle();
+});
 
 function setMode(m){
   mode = m;
@@ -754,17 +966,41 @@ $("saveCfg").addEventListener("click", async () => {
   try {
     const res = await api("ping", {}, url, token);
     if (!res.ok) throw new Error(res.error || "FAIL");
-    cfg = { url, token }; Store.set(KEY.CFG, JSON.stringify(cfg));
+    cfg = { url:url, token:token }; saveCfg();
+    // ขอให้เบราว์เซอร์เก็บค่าแบบถาวร ไม่ล้างทิ้งตอนพื้นที่ไม่พอ
+    try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch(e){}
     fillStaff(res.staff || []);
     $("cfgMsg").textContent = t("cfgOk") + " · " + (res.staff || []).length + " " + (LANG==="th"?"ชื่อ":"names");
-  } catch (err){
-    $("cfgMsg").textContent = t("cfgFail") + err.message;
-  }
+  } catch(err){ $("cfgMsg").textContent = t("cfgFail") + err.message; }
+});
+
+/* รหัสตั้งค่า — ย้ายไปเครื่องอื่นด้วยการคัดลอกครั้งเดียว */
+function renderCfgCode(){
+  $("cfgCode").value = cfg.url
+    ? "CI1:" + btoa(unescape(encodeURIComponent(JSON.stringify({ u:cfg.url, t:cfg.token }))))
+    : "";
+}
+$("copyCfg").addEventListener("click", async () => {
+  const v = $("cfgCode").value; if (!v) return;
+  try { await navigator.clipboard.writeText(v); }
+  catch(e){ $("cfgCode").select(); try { document.execCommand("copy"); } catch(e2){} }
+  $("cfgMsg").textContent = t("copied");
+});
+$("pasteCfg").addEventListener("click", async () => {
+  let code = "";
+  try { code = await navigator.clipboard.readText(); } catch(e){}
+  code = (prompt(t("pastePrompt"), code) || "").trim();
+  if (code.indexOf("CI1:") !== 0) return;
+  try {
+    const o = JSON.parse(decodeURIComponent(escape(atob(code.slice(4)))));
+    $("apiUrl").value = o.u || ""; $("apiToken").value = o.t || "";
+    $("saveCfg").click();
+  } catch(e){ $("cfgMsg").textContent = t("cfgFail") + "code"; }
 });
 
 function fillStaff(names){
   const sel = $("staff");
-  sel.innerHTML = '<option value="">' + esc(t("staffPick")) + '</option>' +
+  sel.innerHTML = '<option value="">' + (LANG==="th" ? "— เลือกชื่อ —" : "— choose a name —") + '</option>' +
     names.map(n => '<option value="' + esc(n) + '"' + (n === pref.staff ? " selected" : "") + '>' + esc(n) + '</option>').join("");
 }
 
@@ -775,23 +1011,57 @@ function fillStaff(names){
       $("v-" + n).classList.toggle("on", n === name);
     });
     if (name !== "scan" && running) stopCam();
+    if (name === "set") renderCaps();
   });
 });
 
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") rollDate();
-  else if (running) stopCam();      // ปล่อยกล้องเมื่อสลับแอป
+  if (document.visibilityState === "visible"){ rollDate(); if (running) keepAwake(); }
+  else if (running) stopCam();          // ปล่อยกล้องเมื่อสลับไปแอปอื่น
 });
 
-/* ═══ 9. เริ่มทำงาน ════════════════════════════════════ */
+/* ═══ 10. ติดตั้งลงหน้าจอโฮม ═══════════════════════════ */
+let deferredPrompt = null;
+const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) ||
+  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+// บาง WebView ไม่มี matchMedia — ถ้าปล่อยให้ throw ตรงนี้ init() ทั้งก้อนจะไม่ทำงาน
+const isStandalone = (function(){
+  try {
+    return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches)
+        || navigator.standalone === true;
+  } catch(e){ return false; }
+})();
+
+function installNote(){
+  if (isStandalone) return t("installed");
+  return isIOS ? t("installIOS") : t("installAndroid");
+}
+window.addEventListener("beforeinstallprompt", e => {
+  e.preventDefault(); deferredPrompt = e;
+  if (!isStandalone) $("installRow").hidden = false;
+});
+$("installBtn").addEventListener("click", async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  try { await deferredPrompt.userChoice; } catch(e){}
+  deferredPrompt = null; $("installRow").hidden = true;
+});
+
+if ("serviceWorker" in navigator)
+  window.addEventListener("load", () =>
+    navigator.serviceWorker.register("sw.js").catch(function(){}));
+
+/* ═══ 11. เริ่มทำงาน ═══════════════════════════════════ */
 (function init(){
   loadAll();
   $("apiUrl").value = cfg.url; $("apiToken").value = cfg.token;
   $("sndBtn").setAttribute("aria-pressed", String(pref.sound));
   $("vibBtn").setAttribute("aria-pressed", String(pref.vibrate));
-  applyLang(); setMode("single"); renderList(); updateBadge();
+  Array.prototype.forEach.call($("areaSeg").children,
+    c => c.setAttribute("aria-pressed", String(c.dataset.area === pref.area)));
+  renderCfgCode(); applyLang(); setMode("single"); renderList(); updateBadge();
   setStatus("idle", t("ready"), t("readySub"));
-  if (cfg.url) api("ping", {}).then(r => { if (r.ok) fillStaff(r.staff || []); }).catch(()=>{});
+  if (cfg.url) api("ping", {}).then(r => { if (r.ok) fillStaff(r.staff || []); }).catch(function(){});
   setInterval(rollDate, 60000);
 })();
 </script>
