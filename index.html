@@ -12,7 +12,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ตรวจรับ Chart">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
-<link rel="icon" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,8 +36,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 #app{display:flex;flex-direction:column;height:100dvh;max-width:560px;margin:0 auto}
 header{display:flex;align-items:center;gap:10px;padding:10px 14px;
   border-bottom:1px solid rgba(169,199,155,.18);flex:0 0 auto}
-header .mark{width:26px;height:26px;border-radius:5px;background:var(--ledger);
-  display:grid;place-items:center;color:var(--ink);font-weight:700;font-size:13px;flex:0 0 auto}
+header .mark{width:28px;height:28px;border-radius:50%;flex:0 0 auto;object-fit:cover;
+  background:#fff;display:block}
 header h1{margin:0;font-size:15px;font-weight:600;flex:1;min-width:0;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chip{font-size:12px;font-weight:600;padding:5px 9px;border-radius:99px;
@@ -149,6 +150,9 @@ h2.sec{font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:upperc
 .caps div{display:flex;justify-content:space-between;gap:12px;padding:6px 0;
   border-bottom:1px solid rgba(169,199,155,.13)}
 .caps span:last-child{color:var(--muted);text-align:right}
+.caps .fix{display:block;color:var(--warn);font-size:11.5px;margin-top:3px;text-align:left}
+.caps div.bad span:first-child{color:#F0A0A0}
+.caps div.good span:first-child{color:#A9C79B}
 
 nav{flex:0 0 auto;display:flex;border-top:1px solid rgba(169,199,155,.18);
   padding-bottom:var(--safe-b);background:var(--ink)}
@@ -162,7 +166,7 @@ nav .badge{display:inline-block;min-width:17px;padding:0 5px;border-radius:99px;
 <body>
 <div id="app">
   <header>
-    <div class="mark">✓</div>
+    <img class="mark" id="brand" src="icons/icon-192.png" alt="">
     <h1 data-i18n="appTitle">ตรวจรับ Chart</h1>
     <button class="chip" id="langBtn">EN</button>
   </header>
@@ -279,6 +283,8 @@ nav .badge{display:inline-block;min-width:17px;padding:0 5px;border-radius:99px;
         <button class="btn primary" id="installBtn" data-i18n="install">ติดตั้งแอป</button>
       </div>
       <p class="note" id="installNote"></p>
+      <div class="row"><button class="btn" id="diagBtn" data-i18n="diag">ตรวจสอบว่าทำไมติดตั้งไม่ได้</button></div>
+      <div class="caps" id="diag"></div>
 
       <h2 class="sec" data-i18n="capsLabel">ความสามารถของกล้องเครื่องนี้</h2>
       <div class="caps" id="caps"></div>
@@ -296,7 +302,7 @@ nav .badge{display:inline-block;min-width:17px;padding:0 5px;border-radius:99px;
 <script src="zxing.min.js"></script>
 <script>
 "use strict";
-const VERSION = "2.0";
+const VERSION = "2.1";
 const $ = id => document.getElementById(id);
 
 /* ═══ 1. ภาษา ══════════════════════════════════════════ */
@@ -342,7 +348,21 @@ th:{appTitle:"ตรวจรับ Chart",ready:"พร้อมสแกน",r
  focusNo:"เครื่องนี้สั่งโฟกัสจากเว็บไม่ได้",
  capRes:"ความละเอียดที่ได้",capZoom:"ซูมด้วยเลนส์",capTorch:"ไฟฉาย",capFocus:"สั่งโฟกัสได้",capTap:"แตะเพื่อโฟกัส",
  yes:"รองรับ",no:"ไม่รองรับ",
- storeWarn:"เครื่องนี้จำค่าตั้งค่าไม่ได้ (เบราว์เซอร์โหมดส่วนตัว?)"},
+ storeWarn:"เครื่องนี้จำค่าตั้งค่าไม่ได้ (เบราว์เซอร์โหมดส่วนตัว?)",
+ diag:"ตรวจสอบว่าทำไมติดตั้งไม่ได้",diagRun:"กำลังตรวจ…",
+ dHttps:"เปิดผ่าน HTTPS",dHttpsFix:"GitHub Pages เป็น https อยู่แล้ว — ถ้าไม่ผ่านแปลว่าเปิดจากไฟล์ในเครื่อง ต้องเปิดจาก URL",
+ dManifest:"ไฟล์ manifest.json",dManifestFix:"ยังไม่ได้อัปโหลด manifest.json ขึ้นไปในโฟลเดอร์เดียวกับ index.html",
+ dIcons:"ไฟล์ไอคอน",dIconsFix:"ต้องอัปโหลดโฟลเดอร์ icons/ ทั้งโฟลเดอร์ ไม่ใช่แค่ index.html",
+ dSw:"Service worker",dSwFix:"ยังไม่ได้อัปโหลด sw.js หรือลงทะเบียนไม่สำเร็จ",
+ dScope:"ที่อยู่ตรงกับ manifest",dScopeFix:"start_url ใน manifest ไม่ตรงกับ URL ที่เปิดอยู่",
+ dBrowser:"เบราว์เซอร์",dPrompt:"Chrome เสนอให้ติดตั้ง",
+ dPromptFix:"ถ้าทุกข้อบนผ่านแล้วแต่ข้อนี้ยังไม่ผ่าน ให้ปิดแอปแล้วเปิดใหม่ หรือใช้เมนู ⋮ › ติดตั้งแอป",
+ dPromptIOS:"iPhone ไม่มีปุ่มติดตั้งอัตโนมัติ ต้องใช้ปุ่มแชร์ใน Safari",
+ dInstalled:"สถานะตอนนี้",dOk:"ผ่าน",dBad:"ไม่ผ่าน",dNA:"ไม่เกี่ยว",
+ dSafari:"Safari (iPhone) — ติดตั้งด้วยปุ่มแชร์",dOther:"เบราว์เซอร์อื่น",
+ dChrome:"Chrome/Edge — ติดตั้งอัตโนมัติได้",
+ dInApp:"เปิดอยู่ในแอปอื่น (Line/Facebook) — ติดตั้งไม่ได้ ต้องเปิดใน Chrome หรือ Safari",
+ dStandalone:"ติดตั้งแล้ว",dBrowserTab:"ยังเปิดในแท็บเบราว์เซอร์"},
 en:{appTitle:"Chart intake",ready:"Ready to scan",readySub:"Choose who is receiving first",
  camIdle:"Tap Start scanning to open the camera",startCam:"Start scanning",stopCam:"Stop scanning",
  manual:"Type AN",manualLabel:"AN number (9 digits)",add:"Add",
@@ -384,7 +404,21 @@ en:{appTitle:"Chart intake",ready:"Ready to scan",readySub:"Choose who is receiv
  focusNo:"This phone can't be told to focus from the web",
  capRes:"Resolution in use",capZoom:"Lens zoom",capTorch:"Torch",capFocus:"Focus control",capTap:"Tap to focus",
  yes:"supported",no:"not supported",
- storeWarn:"This browser can't remember settings (private mode?)"}
+ storeWarn:"This browser can't remember settings (private mode?)",
+ diag:"Check why install isn't offered",diagRun:"Checking…",
+ dHttps:"Served over HTTPS",dHttpsFix:"Open it from the site URL, not a local file",
+ dManifest:"manifest.json",dManifestFix:"Upload manifest.json next to index.html",
+ dIcons:"Icon files",dIconsFix:"Upload the whole icons/ folder, not just index.html",
+ dSw:"Service worker",dSwFix:"sw.js is missing or failed to register",
+ dScope:"URL matches manifest",dScopeFix:"start_url in the manifest doesn't match this URL",
+ dBrowser:"Browser",dPrompt:"Chrome offered to install",
+ dPromptFix:"If everything above passes, close and reopen, or use menu ⋮ › Install app",
+ dPromptIOS:"iPhone has no automatic install button — use Share in Safari",
+ dInstalled:"Current state",dOk:"pass",dBad:"fail",dNA:"n/a",
+ dSafari:"Safari (iPhone) — install via Share",dOther:"Other browser",
+ dChrome:"Chrome/Edge — can install automatically",
+ dInApp:"Opened inside another app (Line/Facebook) — can't install, open in Chrome or Safari",
+ dStandalone:"Installed",dBrowserTab:"Still a browser tab"}
 };
 let LANG = "th";
 const t = k => (I18N[LANG][k] ?? k);
@@ -1047,9 +1081,125 @@ $("installBtn").addEventListener("click", async () => {
   deferredPrompt = null; $("installRow").hidden = true;
 });
 
-if ("serviceWorker" in navigator)
-  window.addEventListener("load", () =>
-    navigator.serviceWorker.register("sw.js").catch(function(){}));
+let swReg = null, swError = "";
+if ("serviceWorker" in navigator){
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js")
+      .then(r => { swReg = r; })
+      .catch(e => { swError = e && e.message ? e.message : "register failed"; });
+  });
+  // เมื่อ sw ตัวใหม่เข้าควบคุม ให้โหลดหน้าใหม่ครั้งเดียว เพื่อให้ได้ไฟล์ล่าสุด
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (reloaded) return;
+    reloaded = true;
+    location.reload();
+  });
+}
+
+/* ── ตรวจว่าทำไมติดตั้งไม่ได้ ──────────────────────────
+   ตรวจทีละเงื่อนไขบนเครื่องจริง แล้วบอกว่าข้อไหนไม่ผ่านและต้องแก้อะไร
+   ดีกว่าไล่เดาสาเหตุทีละอย่าง                                    */
+function browserKind(){
+  const ua = navigator.userAgent;
+  if (/(FBAN|FBAV|Line\/|Instagram|Messenger)/i.test(ua)) return "inapp";
+  if (isIOS) return /CriOS|FxiOS|EdgiOS/.test(ua) ? "iosother" : "safari";
+  if (/Chrome|Chromium|Edg/.test(ua)) return "chrome";
+  return "other";
+}
+
+async function headOk(url){
+  try {
+    const r = await fetch(url, { cache:"no-store" });
+    return r.ok;
+  } catch(e){ return false; }
+}
+
+async function runDiag(){
+  const el = $("diag");
+  el.innerHTML = '<div><span>' + esc(t("diagRun")) + '</span><span></span></div>';
+  const rows = [];
+  const add = (label, state, detail, fix) => rows.push({ label, state, detail, fix });
+
+  // 1. HTTPS
+  add(t("dHttps"), window.isSecureContext ? "good" : "bad",
+      location.protocol, window.isSecureContext ? "" : t("dHttpsFix"));
+
+  // 2. manifest
+  let manifest = null, manifestOk = false;
+  const mLink = document.querySelector('link[rel="manifest"]');
+  const mUrl = mLink ? new URL(mLink.getAttribute("href"), location.href).href : null;
+  if (mUrl){
+    try {
+      const r = await fetch(mUrl, { cache:"no-store" });
+      if (r.ok){ manifest = await r.json(); manifestOk = true; }
+    } catch(e){}
+  }
+  add(t("dManifest"), manifestOk ? "good" : "bad",
+      manifestOk ? "OK" : t("dBad"), manifestOk ? "" : t("dManifestFix"));
+
+  // 3. ไอคอน — ตรวจทีละไฟล์ว่ามีอยู่จริง
+  let iconsOk = false, iconDetail = "-";
+  if (manifest && Array.isArray(manifest.icons) && manifest.icons.length){
+    const results = await Promise.all(manifest.icons.map(
+      ic => headOk(new URL(ic.src, mUrl).href)));
+    const good = results.filter(Boolean).length;
+    iconsOk = good === results.length;
+    iconDetail = good + "/" + results.length;
+  }
+  add(t("dIcons"), iconsOk ? "good" : "bad", iconDetail, iconsOk ? "" : t("dIconsFix"));
+
+  // 4. service worker
+  let swOk = false, swDetail = t("dBad");
+  if ("serviceWorker" in navigator){
+    try {
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (reg && (reg.active || reg.installing || reg.waiting)){
+        swOk = true;
+        swDetail = reg.active ? "active" : (reg.waiting ? "waiting" : "installing");
+      }
+    } catch(e){}
+  }
+  add(t("dSw"), swOk ? "good" : "bad", swDetail + (swError ? " · " + swError : ""),
+      swOk ? "" : t("dSwFix"));
+
+  // 5. start_url อยู่ใน scope เดียวกับหน้านี้หรือไม่
+  let scopeOk = false, scopeDetail = "-";
+  if (manifest){
+    const scope = new URL(manifest.scope || ".", mUrl).href;
+    scopeOk = location.href.indexOf(scope) === 0;
+    scopeDetail = scopeOk ? "OK" : scope;
+  }
+  add(t("dScope"), scopeOk ? "good" : "bad", scopeDetail, scopeOk ? "" : t("dScopeFix"));
+
+  // 6. เบราว์เซอร์
+  const kind = browserKind();
+  const kindText = { chrome:t("dChrome"), safari:t("dSafari"), inapp:t("dInApp"),
+                     iosother:t("dPromptIOS"), other:t("dOther") }[kind];
+  add(t("dBrowser"), (kind === "chrome" || kind === "safari") ? "good" : "bad", kindText,
+      kind === "inapp" ? t("dInApp") : "");
+
+  // 7. Chrome เสนอติดตั้งแล้วหรือยัง
+  if (kind === "chrome"){
+    add(t("dPrompt"), deferredPrompt ? "good" : "bad",
+        deferredPrompt ? t("dOk") : t("dBad"), deferredPrompt ? "" : t("dPromptFix"));
+  } else {
+    add(t("dPrompt"), "na", t("dNA"), isIOS ? t("dPromptIOS") : "");
+  }
+
+  // 8. สถานะปัจจุบัน
+  add(t("dInstalled"), isStandalone ? "good" : "na",
+      isStandalone ? t("dStandalone") : t("dBrowserTab"), "");
+
+  el.innerHTML = rows.map(r =>
+    '<div class="' + (r.state === "na" ? "" : r.state) + '">' +
+      '<span>' + esc(r.label) +
+        (r.fix ? '<span class="fix">' + esc(r.fix) + '</span>' : '') +
+      '</span>' +
+      '<span>' + (r.state === "good" ? "✓ " : r.state === "bad" ? "✕ " : "") + esc(r.detail) + '</span>' +
+    '</div>').join("");
+}
+$("diagBtn").addEventListener("click", runDiag);
 
 /* ═══ 11. เริ่มทำงาน ═══════════════════════════════════ */
 (function init(){
