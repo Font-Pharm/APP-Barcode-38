@@ -302,7 +302,7 @@ nav .badge{display:inline-block;min-width:17px;padding:0 5px;border-radius:99px;
 <script src="zxing.min.js"></script>
 <script>
 "use strict";
-const VERSION = "2.1";
+const VERSION = "2.3";
 const $ = id => document.getElementById(id);
 
 /* ═══ 1. ภาษา ══════════════════════════════════════════ */
@@ -344,6 +344,7 @@ th:{appTitle:"ตรวจรับ Chart",ready:"พร้อมสแกน",r
  cfgOk:"เชื่อมต่อสำเร็จ",cfgFail:"เชื่อมต่อไม่สำเร็จ: ",
  confirmClear:"ล้างประวัติทั้งหมด?",confirmClearPending:"ยังมีรายการที่ยังไม่ได้บันทึกลงชีต ล้างทิ้งเลยหรือไม่?",
  name:"ชื่อ - สกุล",rights:"สิทธิ",sent:"วันที่ส่งงานประกัน",sheet:"ชีต",
+ hn:"HN",admit:"วันที่ admit",dc:"วันที่จำหน่าย",
  focusOk:"สั่งโฟกัสใหม่แล้ว",focusRestart:"เปิดกล้องใหม่เพื่อโฟกัส",
  focusNo:"เครื่องนี้สั่งโฟกัสจากเว็บไม่ได้",
  capRes:"ความละเอียดที่ได้",capZoom:"ซูมด้วยเลนส์",capTorch:"ไฟฉาย",capFocus:"สั่งโฟกัสได้",capTap:"แตะเพื่อโฟกัส",
@@ -400,6 +401,7 @@ en:{appTitle:"Chart intake",ready:"Ready to scan",readySub:"Choose who is receiv
  cfgOk:"Connected",cfgFail:"Could not connect: ",
  confirmClear:"Clear all history?",confirmClearPending:"Some items have not been saved to the sheet. Clear anyway?",
  name:"Name",rights:"Coverage",sent:"Sent to claims",sheet:"Sheet",
+ hn:"HN",admit:"Admitted",dc:"Discharged",
  focusOk:"Refocused",focusRestart:"Restarted camera to refocus",
  focusNo:"This phone can't be told to focus from the web",
  capRes:"Resolution in use",capZoom:"Lens zoom",capTorch:"Torch",capFocus:"Focus control",capTap:"Tap to focus",
@@ -618,8 +620,11 @@ function setStatus(s, title, sub){
 function showCard(rec, stamped){
   if (!rec){ $("cardSlot").innerHTML = ""; return; }
   const rows = [];
+  if (rec.hn)     rows.push([t("hn"), rec.hn]);
   if (rec.name)   rows.push([t("name"), rec.name]);
   if (rec.rights) rows.push([t("rights"), rec.rights]);
+  if (rec.admit)  rows.push([t("admit"), rec.admit]);
+  if (rec.dc)     rows.push([t("dc"), rec.dc]);
   if (rec.sent)   rows.push([t("sent"), rec.sent]);
   $("cardSlot").innerHTML = '<div class="card">' +
     (stamped ? '<div class="stamp hit">' + esc(t("stamp")) + '<small>' + esc(stamped) + '</small></div>' : '') +
